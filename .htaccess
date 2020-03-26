@@ -1,12 +1,1037 @@
-<IfModule mod_rewrite.c>
-    RewriteEngine on
+########################################################################
+# OPTIMAL .htaccess FILE FOR SPEED AND SECURITY @Version 2020
+# ----------------------------------------------------------------------
+# @Author: Andreas Hecht
+# @Author URI: https://seoagentur-hamburg.com
+# License: GNU General Public License v2 or later
+# License URI: http://www.gnu.org/licenses/gpl-2.0.html
+########################################################################
 
-    # Don't rewrite files or directories
-    RewriteCond %{REQUEST_FILENAME} -f [OR]
-    RewriteCond %{REQUEST_FILENAME} -d
-    RewriteRule ^ - [L]
 
-    # Rewrite everything else to index.html
-    # to allow html5 state links
-    RewriteRule ^ index.html [L]
+# ----------------------------------------------------------------------
+# Rewrite from HTTP to HTTPS - if you want to use it, comment it out
+# ----------------------------------------------------------------------
+
+#<IfModule mod_rewrite.c>
+#RewriteEngine On
+#RewriteCond %{HTTPS} !=on
+#RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+#</IfModule>
+
+# ----------------------------------------------------------------------
+# | Activate CORS                                                  
+# ----------------------------------------------------------------------
+
+<IfModule mod_headers.c>
+    <FilesMatch "\.(ttf|ttc|otf|eot|woff|woff2|font.css|css|js|gif|png|jpe?g|svg|svgz|ico|webp)$">
+        Header set Access-Control-Allow-Origin "*"
+    </FilesMatch>
 </IfModule>
+
+# -----------------------------------------------------------------------
+# | 404 Fix: Block Nuisance Requests for Non-Existent Files - New in 2018  
+#   https://perishablepress.com/block-nuisance-requests - @Update 2019
+# -----------------------------------------------------------------------
+
+<IfModule mod_alias.c>
+	RedirectMatch 403 (?i)\.php\.suspected
+	RedirectMatch 403 (?i)apple-app-site-association
+	RedirectMatch 403 (?i)/autodiscover/autodiscover.xml
+</IfModule>
+
+# ----------------------------------------------------------------------
+# | Compressing and Caching - Version 2020                                                    |
+# ----------------------------------------------------------------------
+
+# Serve resources with far-future expires headers.
+#
+# (!) If you don't control versioning with filename-based
+# cache busting, you should consider lowering the cache times
+# to something like one week.
+#
+# https://httpd.apache.org/docs/current/mod/mod_expires.html
+
+<IfModule mod_expires.c>
+    ExpiresActive on
+    ExpiresDefault                                      "access plus 1 month"
+
+  # CSS
+    ExpiresByType text/css                              "access plus 1 year"
+
+  # Data interchange
+    ExpiresByType application/atom+xml                  "access plus 1 hour"
+    ExpiresByType application/rdf+xml                   "access plus 1 hour"
+    ExpiresByType application/rss+xml                   "access plus 1 hour"
+
+    ExpiresByType application/json                      "access plus 0 seconds"
+    ExpiresByType application/ld+json                   "access plus 0 seconds"
+    ExpiresByType application/schema+json               "access plus 0 seconds"
+    ExpiresByType application/vnd.geo+json              "access plus 0 seconds"
+    ExpiresByType application/xml                       "access plus 0 seconds"
+    ExpiresByType text/xml                              "access plus 0 seconds"
+
+  # Favicon (cannot be renamed!) and cursor images
+    ExpiresByType image/vnd.microsoft.icon              "access plus 1 week"
+    ExpiresByType image/x-icon                          "access plus 1 week"
+
+  # HTML - No Caching
+    ExpiresByType text/html                             "access plus 0 seconds"
+
+  # JavaScript
+    ExpiresByType application/javascript                "access plus 1 year"
+    ExpiresByType application/x-javascript              "access plus 1 year"
+    ExpiresByType text/javascript                       "access plus 1 year"
+
+  # Manifest files
+    ExpiresByType application/manifest+json             "access plus 1 week"
+    ExpiresByType application/x-web-app-manifest+json   "access plus 0 seconds"
+    ExpiresByType text/cache-manifest                   "access plus 0 seconds"
+    
+# Update 2020: Google recommendation: cache duration increased to 1 year
+# @see: https://web.dev/uses-long-cache-ttl/    
+
+  # Media files
+    ExpiresByType audio/ogg                             "access plus 1 year"
+    ExpiresByType image/bmp                             "access plus 1 year"
+    ExpiresByType image/gif                             "access plus 1 year"
+    ExpiresByType image/jpeg                            "access plus 1 year"
+    ExpiresByType image/png                             "access plus 1 year"
+    ExpiresByType image/svg+xml                         "access plus 1 year"
+    ExpiresByType image/webp                            "access plus 1 year"
+    ExpiresByType video/mp4                             "access plus 1 year"
+    ExpiresByType video/ogg                             "access plus 1 year"
+    ExpiresByType video/webm                            "access plus 1 year"
+
+  # Web fonts
+
+    # Embedded OpenType (EOT)
+    ExpiresByType application/vnd.ms-fontobject         "access plus 1 year"
+    ExpiresByType font/eot                              "access plus 1 year"
+
+    # OpenType
+    ExpiresByType font/opentype                         "access plus 1 year"
+
+    # TrueType
+    ExpiresByType application/x-font-ttf                "access plus 1 year"
+
+    # Web Open Font Format (WOFF) 1.0
+    ExpiresByType application/font-woff                 "access plus 1 year"
+    ExpiresByType application/x-font-woff               "access plus 1 year"
+    ExpiresByType font/woff                             "access plus 1 year"
+
+    # Web Open Font Format (WOFF) 2.0
+    ExpiresByType application/font-woff2                "access plus 1 year"
+
+  # Other
+    ExpiresByType text/x-cross-domain-policy            "access plus 1 week"
+</IfModule>
+
+<IfModule mod_deflate.c>
+# Insert filters / compress text, html, javascript, css, xml:
+AddOutputFilterByType DEFLATE text/plain
+AddOutputFilterByType DEFLATE text/html
+AddOutputFilterByType DEFLATE text/xml
+AddOutputFilterByType DEFLATE text/css
+AddOutputFilterByType DEFLATE text/vtt 
+AddOutputFilterByType DEFLATE text/x-component
+AddOutputFilterByType DEFLATE application/xml
+AddOutputFilterByType DEFLATE application/xhtml+xml
+AddOutputFilterByType DEFLATE application/rss+xml
+AddOutputFilterByType DEFLATE application/js
+AddOutputFilterByType DEFLATE application/javascript
+AddOutputFilterByType DEFLATE application/x-javascript
+AddOutputFilterByType DEFLATE application/x-httpd-php
+AddOutputFilterByType DEFLATE application/x-httpd-fastphp
+AddOutputFilterByType DEFLATE application/atom+xml 
+AddOutputFilterByType DEFLATE application/json
+AddOutputFilterByType DEFLATE application/ld+json 
+AddOutputFilterByType DEFLATE application/vnd.ms-fontobject 
+AddOutputFilterByType DEFLATE application/x-font-ttf
+AddOutputFilterByType DEFLATE application/font-woff2
+AddOutputFilterByType DEFLATE application/x-font-woff
+AddOutputFilterByType DEFLATE application/x-web-app-manifest+json font/woff
+AddOutputFilterByType DEFLATE font/woff 
+AddOutputFilterByType DEFLATE font/opentype
+AddOutputFilterByType DEFLATE image/svg+xml
+AddOutputFilterByType DEFLATE image/x-icon 
+
+# Exception: Images
+SetEnvIfNoCase REQUEST_URI \.(?:gif|jpg|jpeg|png|svg)$ no-gzip dont-vary
+
+# Drop problematic browsers
+BrowserMatch ^Mozilla/4 gzip-only-text/html
+BrowserMatch ^Mozilla/4\.0[678] no-gzip
+BrowserMatch \bMSI[E] !no-gzip !gzip-only-text/html
+
+# Make sure proxies don't deliver the wrong content
+Header append Vary User-Agent env=!dont-vary
+</IfModule>
+
+#Alternative caching using Apache's "mod_headers", if it's installed.
+#Caching of common files - ENABLED
+<IfModule mod_headers.c>
+<FilesMatch "\.(ico|pdf|flv|swf|js|css|gif|png|jpg|jpeg|txt|woff2|woff)$">
+Header set Cache-Control "max-age=31536000, public"
+</FilesMatch>
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|css|xml|gz)$">
+    Header append Vary Accept-Encoding
+  </FilesMatch>
+</IfModule>
+
+# Set Keep Alive Header
+<IfModule mod_headers.c>
+    Header set Connection keep-alive
+</IfModule>
+
+# If your server don't support ETags deactivate with "None" (and remove header)
+<IfModule mod_expires.c> 
+  <IfModule mod_headers.c> 
+    Header unset ETag 
+  </IfModule> 
+  FileETag None 
+</IfModule>
+
+<IfModule mod_headers.c>
+<FilesMatch ".(js|css|xml|gz|html|woff|woff2|ttf)$">
+Header append Vary: Accept-Encoding
+</FilesMatch>
+</IfModule>
+
+# ----------------------------------------------------------------------
+# | 7G Firewall for Security - Do not change this part @Update 2020
+# ----------------------------------------------------------------------
+# 7G FIREWALL v1.2 20190727 - Live-Version 02/2020
+# @ https://perishablepress.com/7g-firewall/
+
+# 7G:[CORE]
+ServerSignature Off
+Options -Indexes
+RewriteEngine On
+RewriteBase /
+
+# 7G:[QUERY STRING]
+<IfModule mod_rewrite.c>	
+	RewriteCond %{REQUEST_URI} !(7g_log.php) [NC]	
+	RewriteCond %{QUERY_STRING} ([a-z0-9]{2000,}) [NC,OR]
+	RewriteCond %{QUERY_STRING} (/|%2f)(:|%3a)(/|%2f) [NC,OR]
+	RewriteCond %{QUERY_STRING} (/|%2f)(\*|%2a)(\*|%2a)(/|%2f) [NC,OR]
+	RewriteCond %{QUERY_STRING} (~|`|<|>|\^|\|\\|0x00|%00|%0d%0a) [NC,OR]
+	RewriteCond %{QUERY_STRING} (cmd|command)(=|%3d)(chdir|mkdir)(.*)(x20) [NC,OR]
+	RewriteCond %{QUERY_STRING} (fck|ckfinder|fullclick|ckfinder|fckeditor) [NC,OR]
+	RewriteCond %{QUERY_STRING} (/|%2f)((wp-)?config)((\.|%2e)inc)?((\.|%2e)php) [NC,OR]
+	RewriteCond %{QUERY_STRING} (thumbs?(_editor|open)?|tim(thumbs?)?)((\.|%2e)php) [NC,OR]
+	RewriteCond %{QUERY_STRING} (absolute_|base|root_)(dir|path)(=|%3d)(ftp|https?) [NC,OR]
+	RewriteCond %{QUERY_STRING} (localhost|loopback|127(\.|%2e)0(\.|%2e)0(\.|%2e)1) [NC,OR]
+	RewriteCond %{QUERY_STRING} (\.|20)(get|the)(_|%5f)(permalink|posts_page_url)(\(|%28) [NC,OR]
+	RewriteCond %{QUERY_STRING} (s)?(ftp|http|inurl|php)(s)?(:(/|%2f|%u2215)(/|%2f|%u2215)) [NC,OR]
+	RewriteCond %{QUERY_STRING} (globals|mosconfig([a-z_]{1,22})|request)(=|\[|%[a-z0-9]{0,2}) [NC,OR]
+	RewriteCond %{QUERY_STRING} ((boot|win)((\.|%2e)ini)|etc(/|%2f)passwd|self(/|%2f)environ) [NC,OR]
+	RewriteCond %{QUERY_STRING} (((/|%2f){3,3})|((\.|%2e){3,3})|((\.|%2e){2,2})(/|%2f|%u2215)) [NC,OR]
+	RewriteCond %{QUERY_STRING} (benchmark|char|exec|fopen|function|html)(.*)(\(|%28)(.*)(\)|%29) [NC,OR]
+	RewriteCond %{QUERY_STRING} (php)([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}) [NC,OR]
+	RewriteCond %{QUERY_STRING} (e|%65|%45)(v|%76|%56)(a|%61|%31)(l|%6c|%4c)(.*)(\(|%28)(.*)(\)|%29) [NC,OR]
+	RewriteCond %{QUERY_STRING} (/|%2f)(=|%3d|$&|_mm|cgi(\.|-)|inurl(:|%3a)(/|%2f)|(mod|path)(=|%3d)(\.|%2e)) [NC,OR]
+	RewriteCond %{QUERY_STRING} (<|%3c)(.*)(e|%65|%45)(m|%6d|%4d)(b|%62|%42)(e|%65|%45)(d|%64|%44)(.*)(>|%3e) [NC,OR]
+	RewriteCond %{QUERY_STRING} (<|%3c)(.*)(i|%69|%49)(f|%66|%46)(r|%72|%52)(a|%61|%41)(m|%6d|%4d)(e|%65|%45)(.*)(>|%3e) [NC,OR]
+	RewriteCond %{QUERY_STRING} (<|%3c)(.*)(o|%4f|%6f)(b|%62|%42)(j|%4a|%6a)(e|%65|%45)(c|%63|%43)(t|%74|%54)(.*)(>|%3e) [NC,OR]
+	RewriteCond %{QUERY_STRING} (<|%3c)(.*)(s|%73|%53)(c|%63|%43)(r|%72|%52)(i|%69|%49)(p|%70|%50)(t|%74|%54)(.*)(>|%3e) [NC,OR]
+	RewriteCond %{QUERY_STRING} (\+|%2b|%20)(d|%64|%44)(e|%65|%45)(l|%6c|%4c)(e|%65|%45)(t|%74|%54)(e|%65|%45)(\+|%2b|%20) [NC,OR]
+	RewriteCond %{QUERY_STRING} (\+|%2b|%20)(i|%69|%49)(n|%6e|%4e)(s|%73|%53)(e|%65|%45)(r|%72|%52)(t|%74|%54)(\+|%2b|%20) [NC,OR]
+	RewriteCond %{QUERY_STRING} (\+|%2b|%20)(s|%73|%53)(e|%65|%45)(l|%6c|%4c)(e|%65|%45)(c|%63|%43)(t|%74|%54)(\+|%2b|%20) [NC,OR]
+	RewriteCond %{QUERY_STRING} (\+|%2b|%20)(u|%75|%55)(p|%70|%50)(d|%64|%44)(a|%61|%41)(t|%74|%54)(e|%65|%45)(\+|%2b|%20) [NC,OR]
+	RewriteCond %{QUERY_STRING} (\\x00|(\"|%22|\'|%27)?0(\"|%22|\'|%27)?(=|%3d)(\"|%22|\'|%27)?0|cast(\(|%28)0x|or%201(=|%3d)1) [NC,OR]
+	RewriteCond %{QUERY_STRING} (g|%67|%47)(l|%6c|%4c)(o|%6f|%4f)(b|%62|%42)(a|%61|%41)(l|%6c|%4c)(s|%73|%53)(=|[|%[0-9A-Z]{0,2}) [NC,OR]
+	RewriteCond %{QUERY_STRING} (_|%5f)(r|%72|%52)(e|%65|%45)(q|%71|%51)(u|%75|%55)(e|%65|%45)(s|%73|%53)(t|%74|%54)(=|[|%[0-9A-Z]{0,2}) [NC,OR]
+	RewriteCond %{QUERY_STRING} (j|%6a|%4a)(a|%61|%41)(v|%76|%56)(a|%61|%31)(s|%73|%53)(c|%63|%43)(r|%72|%52)(i|%69|%49)(p|%70|%50)(t|%74|%54)(:|%3a)(.*)(;|%3b|\)|%29) [NC,OR]
+	RewriteCond %{QUERY_STRING} (b|%62|%42)(a|%61|%41)(s|%73|%53)(e|%65|%45)(6|%36)(4|%34)(_|%5f)(e|%65|%45|d|%64|%44)(e|%65|%45|n|%6e|%4e)(c|%63|%43)(o|%6f|%4f)(d|%64|%44)(e|%65|%45)(.*)(\()(.*)(\)) [NC,OR]
+	RewriteCond %{QUERY_STRING} (allow_url_(fopen|include)|auto_prepend_file|blexbot|browsersploit|(c99|php)shell|curltest|disable_functions?|document_root|elastix|encodeuricom|exec|exploit|fclose|fgets|fputs|fsbuff|fsockopen|gethostbyname|grablogin|hmei7|input_file|load_file|null|open_basedir|outfile|passthru|popen|proc_open|quickbrute|remoteview|root_path|safe_mode|shell_exec|site((.){0,2})copier|sux0r|trojan|wget|xertive) [NC,OR]
+	RewriteCond %{QUERY_STRING} (;|<|>|\'|\"|\)|%0a|%0d|%22|%27|%3c|%3e|%00)(.*)(/\*|alter|base64|benchmark|cast|char|concat|convert|create|encode|declare|delete|drop|insert|md5|order|request|script|select|set|union|update) [NC,OR]
+	RewriteCond %{QUERY_STRING} ((\+|%2b)(concat|delete|get|select|union)(\+|%2b)) [NC,OR]
+	RewriteCond %{QUERY_STRING} (union)(.*)(select)(.*)(\(|%28) [NC,OR]
+	RewriteCond %{QUERY_STRING} (concat)(.*)(\(|%28) [NC]	
+	RewriteRule .* - [F,L]	
+	# RewriteRule .* /7g_log.php?log [L,NE,E=7G_QUERY_STRING:%1___%2___%3]	
+</IfModule>
+
+# 7G:[REQUEST URI]
+<IfModule mod_rewrite.c>	
+	RewriteCond %{REQUEST_URI} !(7g_log.php) [NC]	
+	RewriteCond %{REQUEST_URI} ([a-z0-9]{2000,}) [NC,OR]
+	RewriteCond %{REQUEST_URI} (=?\\(\'|%27)/?)(\.) [NC,OR]
+	RewriteCond %{REQUEST_URI} (/)(\*|\"|\'|\.|,|&|&amp;?)/?$ [NC,OR]
+	RewriteCond %{REQUEST_URI} (\.)(php)(\()?([0-9]+)(\))?(/)?$ [NC,OR]
+	RewriteCond %{REQUEST_URI} (/)(vbulletin|boards|vbforum)(/)? [NC,OR]
+	RewriteCond %{REQUEST_URI} (\^|~|`|<|>|,|%|\\|\{|\}|\[|\]|\|) [NC,OR]
+	RewriteCond %{REQUEST_URI} (\.(s?ftp-?)config|(s?ftp-?)config\.) [NC,OR]
+	RewriteCond %{REQUEST_URI} (\{0\}|\"?0\"?=\"?0|\(/\(|\.\.\.|\+\+\+|\\\") [NC,OR]
+	RewriteCond %{REQUEST_URI} (thumbs?(_editor|open)?|tim(thumbs?)?)(\.php) [NC,OR]
+	RewriteCond %{REQUEST_URI} (/)(fck|ckfinder|fullclick|ckfinder|fckeditor) [NC,OR]
+	RewriteCond %{REQUEST_URI} (\.|20)(get|the)(_)(permalink|posts_page_url)(\() [NC,OR]
+	RewriteCond %{REQUEST_URI} (///|\?\?|/&&|/\*(.*)\*/|/:/|\\\\|0x00|%00|%0d%0a) [NC,OR]
+	RewriteCond %{REQUEST_URI} (/%7e)(root|ftp|bin|nobody|named|guest|logs|sshd)(/) [NC,OR]
+	RewriteCond %{REQUEST_URI} (/)(etc|var)(/)(hidden|secret|shadow|ninja|passwd|tmp)(/)?$ [NC,OR]
+	RewriteCond %{REQUEST_URI} (s)?(ftp|http|inurl|php)(s)?(:(/|%2f|%u2215)(/|%2f|%u2215)) [NC,OR]
+	RewriteCond %{REQUEST_URI} (/)(=|\$&?|&?(pws|rk)=0|_mm|_vti_|cgi(\.|-)?|(=|/|;|,)nt\.) [NC,OR]
+	RewriteCond %{REQUEST_URI} (\.)(conf(ig)?|ds_store|htaccess|htpasswd|init?|mysql-select-db)(/)?$ [NC,OR]
+	RewriteCond %{REQUEST_URI} (/)(bin)(/)(cc|chmod|chsh|cpp|echo|id|kill|mail|nasm|perl|ping|ps|python|tclsh)(/)?$ [NC,OR]
+	RewriteCond %{REQUEST_URI} (/)(::[0-9999]|%3a%3a[0-9999]|127\.0\.0\.1|localhost|loopback|makefile|pingserver|wwwroot)(/)? [NC,OR]
+	RewriteCond %{REQUEST_URI} (\(null\)|\{\$itemURL\}|cAsT\(0x|echo(.*)kae|etc/passwd|eval\(|self/environ|\+union\+all\+select) [NC,OR]
+	RewriteCond %{REQUEST_URI} (/)(awstats|(c99|php|web)shell|document_root|error_log|listinfo|muieblack|remoteview|site((.){0,2})copier|sqlpatch|sux0r) [NC,OR]
+	RewriteCond %{REQUEST_URI} (/)((php|web)?shell|conf(ig)?|crossdomain|fileditor|locus7|nstview|php(get|remoteview|writer)|r57|remview|sshphp|storm7|webadmin)(.*)(\.|\() [NC,OR]
+	RewriteCond %{REQUEST_URI} (/)(author-panel|bitrix|class|database|(db|mysql)-?admin|filemanager|htdocs|httpdocs|https?|mailman|mailto|msoffice|mysql|_?php-?my-?admin(.*)|sql|system|tmp|undefined|usage|var|vhosts|webmaster|www)(/) [NC,OR]
+	RewriteCond %{REQUEST_URI} (base64_(en|de)code|benchmark|child_terminate|e?chr|eval|exec|function|fwrite|(f|p)open|html|leak|passthru|p?fsockopen|phpinfo|posix_(kill|mkfifo|setpgid|setsid|setuid)|proc_(close|get_status|nice|open|terminate)|(shell_)?exec|system)(.*)(\()(.*)(\)) [NC,OR]
+	RewriteCond %{REQUEST_URI} (\.)(7z|ab4|afm|aspx?|bash|ba?k?|bz2|cfg|cfml?|cgi|conf(ig)?|ctl|dat|db|dll|eml|et2|exe|fec|fla|hg|inc|ini|inv|jsp|log|lqd|mbf|mdb|mmw|mny|old|one|out|passwd|pdb|pl|psd|pst|ptdb|pwd|py|qbb|qdf|rar|rdf|sdb|sql|sh|soa|swf|swl|swp|stx|tar|tax|tgz|tls|tmd|wow|zlib)$ [NC,OR]
+	RewriteCond %{REQUEST_URI} (/)(^$|00.temp00|0day|3xp|70bex?|admin_events|bkht|(php|web)?shell|configbak|curltest|db|dompdf|filenetworks|hmei7|index\.php/index\.php/index|jahat|kcrew|keywordspy|mobiquo|mysql|nessus|php-?info|racrew|sql|ucp|webconfig|(wp-)?conf(ig)?(uration)?|xertive)(\.php) [NC]	
+	RewriteRule .* - [F,L]	
+	# RewriteRule .* /7g_log.php?log [L,NE,E=7G_REQUEST_URI:%1___%2___%3]	
+</IfModule>
+# 7G:[USER AGENT]
+<IfModule mod_rewrite.c>	
+	RewriteCond %{REQUEST_URI} !(7g_log.php) [NC]	
+	RewriteCond %{HTTP_USER_AGENT} ([a-z0-9]{2000,}) [NC,OR]
+	RewriteCond %{HTTP_USER_AGENT} (&lt;|%0a|%0d|%27|%3c|%3e|%00|0x00) [NC,OR]
+	RewriteCond %{HTTP_USER_AGENT} ((c99|php|web)shell|remoteview|site((.){0,2})copier) [NC,OR]
+	RewriteCond %{HTTP_USER_AGENT} (base64_decode|bin/bash|disconnect|eval|lwp-download|unserialize|\\\x22) [NC,OR]
+	RewriteCond %{HTTP_USER_AGENT} (360Spider|acapbot|acoonbot|ahrefs|alexibot|asterias|attackbot|backdorbot|becomebot|binlar|blackwidow|blekkobot|blexbot|blowfish|bullseye|bunnys|butterfly|careerbot|casper|checkpriv|cheesebot|cherrypick|chinaclaw|choppy|clshttp|cmsworld|copernic|copyrightcheck|cosmos|crescent|cy_cho|datacha|demon|diavol|discobot|dittospyder|dotbot|dotnetdotcom|dumbot|emailcollector|emailsiphon|emailwolf|exabot|extract|eyenetie|feedfinder|flaming|flashget|flicky|foobot|g00g1e|getright|gigabot|go-ahead-got|gozilla|grabnet|grafula|harvest|heritrix|httrack|icarus6j|jetbot|jetcar|jikespider|kmccrew|leechftp|libweb|linkextractor|linkscan|linkwalker|loader|miner|majestic|mechanize|mj12bot|morfeus|moveoverbot|netmechanic|netspider|nicerspro|nikto|ninja|nutch|octopus|pagegrabber|planetwork|postrank|proximic|purebot|pycurl|python|queryn|queryseeker|radian6|radiation|realdownload|rogerbot|scooter|seekerspider|semalt|seznambot|siclab|sindice|sistrix|sitebot|siteexplorer|sitesnagger|skygrid|smartdownload|snoopy|sosospider|spankbot|spbot|sqlmap|stackrambler|stripper|sucker|surftbot|sux0r|suzukacz|suzuran|takeout|teleport|telesoft|true_robots|turingos|turnit|vampire|vikspider|voideye|webleacher|webreaper|webstripper|webvac|webviewer|webwhacker|winhttp|wwwoffle|woxbot|xaldon|xxxyy|yamanalab|yioopbot|youda|zeus|zmeu|zune|zyborg) [NC]	
+	RewriteRule .* - [F,L]	
+	# RewriteRule .* /7g_log.php?log [L,NE,E=7G_USER_AGENT:%1]	
+</IfModule>
+# 7G:[REMOTE HOST]
+<IfModule mod_rewrite.c>	
+	RewriteCond %{REQUEST_URI} !(7g_log.php) [NC]	
+	RewriteCond %{REMOTE_HOST} (163data|amazonaws|colocrossing|crimea|g00g1e|justhost|kanagawa|loopia|masterhost|onlinehome|poneytel|sprintdatacenter|reverse.softlayer|safenet|ttnet|woodpecker|wowrack) [NC]	
+	RewriteRule .* - [F,L]	
+	# RewriteRule .* /7g_log.php?log [L,NE,E=7G_REMOTE_HOST:%1]	
+</IfModule>
+# 7G:[HTTP REFERRER]
+<IfModule mod_rewrite.c>	
+	RewriteCond %{REQUEST_URI} !(7g_log.php) [NC]	
+	RewriteCond %{HTTP_REFERER} (semalt.com|todaperfeita) [NC,OR]
+	RewriteCond %{HTTP_REFERER} (ambien|blue\spill|cialis|cocaine|ejaculat|erectile|erections|hoodia|huronriveracres|impotence|levitra|libido|lipitor|phentermin|pro[sz]ac|sandyauer|tramadol|troyhamby|ultram|unicauca|valium|viagra|vicodin|xanax|ypxaieo) [NC]
+	RewriteRule .* - [F,L]	
+	# RewriteRule .* /7g_log.php?log [L,NE,E=7G_HTTP_REFERRER:%1]	
+</IfModule>
+# 7G:[REQUEST METHOD]
+<IfModule mod_rewrite.c>	
+	RewriteCond %{REQUEST_URI} !(7g_log.php) [NC]	
+	RewriteCond %{REQUEST_METHOD} ^(connect|debug|delete|move|put|trace|track) [NC]	
+	RewriteRule .* - [F,L]	
+	# RewriteRule .* /7g_log.php?log [L,NE,E=7G_REQUEST_METHOD:%1]	
+</IfModule>
+# ----------------------------------------------------------------------
+#   Block WordPress files from outside access
+# ----------------------------------------------------------------------	
+# No access to the install.php
+<files install.php>
+Order allow,deny
+Deny from all
+</files>
+ 
+# No access to the wp-config.php 
+<files wp-config.php>
+Order allow,deny
+Deny from all
+</files>
+ 
+# No access to the readme.html
+<files readme.html>
+ Order Allow,Deny
+ Deny from all
+ Satisfy all
+</Files>
+ 
+# No access to the liesmich.html for DE Edition
+<Files liesmich.html>
+ Order Allow,Deny
+ Deny from all
+ Satisfy all
+</Files>
+ 
+# No error log access 
+<files error_log>
+Order allow,deny
+Deny from all
+</files>
+#No access to the .htaccess und .htpasswd
+<FilesMatch "(\.htaccess|\.htpasswd)">
+  Order deny,allow
+  Deny from all
+</FilesMatch>
+# Block access to includes folder
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteRule ^wp-admin/includes/ - [F,L]
+RewriteRule !^wp-includes/ - [S=3]
+RewriteRule ^wp-includes/[^/]+\.php$ - [F,L]
+RewriteRule ^wp-includes/js/tinymce/langs/.+\.php - [F,L]
+RewriteRule ^wp-includes/theme-compat/ - [F,L]
+</IfModule>
+# ----------------------------------------------------------------------
+# | Blocking the »ReallyLongRequest« Bandit - New in 2018  
+#   https://perishablepress.com/blocking-reallylongrequest-bandit/
+# ----------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+    RewriteCond %{REQUEST_METHOD} .* [NC]
+    RewriteCond %{THE_REQUEST}  (YesThisIsAReallyLongRequest|ScanningForResearchPurpose) [NC,OR]
+    RewriteCond %{QUERY_STRING} (YesThisIsAReallyLongRequest|ScanningForResearchPurpose) [NC]
+    RewriteRule .* - [F,L]
+</IfModule>
+# --------------------------------------------------------------------------------------------
+#   Ultimate hotlink protection - IMPORTANT: Change »?domain\« in line 361 to your domain name
+#   Example: ?andreas-hecht\ ### if you do not use https, change https in line 361 to http
+# --------------------------------------------------------------------------------------------
+#<IfModule mod_rewrite.c>
+# RewriteEngine on
+# RewriteCond %{HTTP_REFERER}     !^$
+# RewriteCond %{REQUEST_FILENAME} -f
+# RewriteCond %{REQUEST_FILENAME} \.(gif|jpe?g?|png)$           [NC]
+# RewriteCond %{HTTP_REFERER}     !^https?://([^.]+\.)?domain\. [NC]
+# RewriteRule \.(gif|jpe?g?|png)$                             - [F,NC,L]
+#</ifModule>
+# ----------------------------------------------------------------------
+#   Protect your WordPress Login with HTTP Authentification
+# ----------------------------------------------------------------------
+# If you want to use it, comment it out and set your path to .htpasswd
+#<Files wp-login.php>
+#AuthName "Admin-Bereich"
+#AuthType Basic
+#AuthUserFile /usr/local/www/apache24/your-path/your-domain.com/.htpasswd 
+#require valid-user
+#</Files>
+# ----------------------------------------------------------------------
+#   Switch off the security risk XML-RPC interface completely
+# ----------------------------------------------------------------------
+### @see https://digwp.com/2009/06/xmlrpc-php-security/
+<Files xmlrpc.php>
+ Order Deny,Allow
+ Deny from all
+</Files>
+# -----------------------------------------------------------------------------
+#  HTTP SECURITY HEADER | Test on: https://securityheaders.com | UPDATE 2019
+# -----------------------------------------------------------------------------
+### @see https://scotthelme.co.uk/hardening-your-http-response-headers
+### UPDATE 2019
+## No-Referrer-Header
+<IfModule mod_headers.c>
+    Header set Referrer-Policy "no-referrer"
+</IfModule>
+## X-FRAME-OPTIONS-Header
+<IfModule mod_headers.c>
+    Header set X-Frame-Options "sameorigin"
+</IfModule>
+## X-XSS-PROTECTION-Header
+<IfModule mod_headers.c>
+    Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+## X-Content-Type-Options-Header
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+</IfModule>
+## Strict-Transport-Security-Header - if you are using https on your website, comment this block out
+#<IfModule mod_headers.c>
+#   Header set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+#</IfModule>
+## This prevents that false issued certificates for this website can be used unnoticed. (Experimental)
+## @see https://tools.ietf.org/html/draft-ietf-httpbis-expect-ct-02
+<IfModule mod_headers.c>
+   Header set Expect-CT "enforce, max-age=21600"	
+</IfModule>
+# ----------------------------------------------------------------------
+# The original WordPress Rewrite Rules - Do not change anything here, 
+# except you are using a WordPress Multisite
+# ----------------------------------------------------------------------
+# BEGIN WordPress
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+# END WordPress
+@2amredart
+2amredart commented on 4 Aug 2018
+Hi @HechtMediaArts,
+
+When using the htaccess here
+
+A password protected page is not working properly.
+Correct, incorrect or blank password submitted will cause the page to go to a blank page (domain.com/wp-login.php?action=postpass)
+Pressing back will bring the correct page. For example if the correct password was entered, the content of the page will be shown. If incorrect or blank password is used, the same password page will be shown.
+I've narrowed down to htaccess issue after using the previous htaccess.
+
+Is there a way to fix this?
+
+@2amredart
+2amredart commented on 4 Aug 2018 • 
+"Solved" it by changing
+
+<IfModule mod_headers.c>
+    Header set Referrer-Policy "no-referrer"
+</IfModule>
+to
+
+<IfModule mod_headers.c>
+    Header set Referrer-Policy "no-referrer-when-downgrade"
+</IfModule>
+Not sure whether this is the right way.
+
+@virtual2gobr
+virtual2gobr commented on 28 Aug 2018
+Hi. Very nice script. Thanks so much.
+Question: Do I still need to use plugins, like: WP Super Cache and WP-Optimize?
+
+@HechtMediaArts
+Owner
+Author
+HechtMediaArts commented on 18 Sep 2018
+Hi. Very nice script. Thanks so much.
+Question: Do I still need to use plugins, like: WP Super Cache and WP-Optimize?
+
+Hi,
+
+use the following plugins for highspeed: Autoptimize and Cache Enabler. Much better as WP Super Cache and WP-Optimize.
+
+@spicyindian
+spicyindian commented on 26 Jan 2019
+Seeking help from from You: htaccess Guru!
+
+We are running a scan on our website using Vega.
+It tries so many random things to break into the site.
+Despite using this .htaccess, Vega detects the following...
+
+Bash Shellshock Injection
+Insecure Cross-Origin Resource Access Control
+Integer Overflow
+Page Fingerprint Differential Detected - Possible Local File Include
+Page Fingerprint Differential Detected - Possible Xpath Injection
+Now expanding each one for better clarity
+
+In this test Vega shows that it tried an URL
+GET /digital-advisory-services/
+
+The Detailed request was
+
+GET /digital-advisory-services/ HTTP/1.1
+Accept-Language: () { :;}; /bin/sleep 31
+Accept-Encoding: gzip,deflate
+Host: newtestsite.domain.com
+Connection: Keep-Alive
+User-Agent: UserAgent
+
+The response it gets was
+
+HTTP/1.1 200 OK
+Date: Fri, 25 Jan 2019 23:46:15 GMT
+Server: Apache
+Link: https://newtestsite.domain.com/wp-json/; rel="https://api.w.org/", https://newtestsite.domain.com/?p=39; rel=shortlink
+X-Frame-Options: SAMEORIGIN
+Cache-Control: max-age=3600
+Expires: Sat, 26 Jan 2019 00:46:15 GMT
+X-XSS-Protection: 1; mode=block
+Referrer-Policy: no-referrer
+X-Frame-Options: sameorigin
+X-Content-Type-Options: nosniff
+Expect-CT: enforce, max-age=21600
+Keep-Alive: timeout=5, max=98
+Content-Type: text/html; charset=UTF-8
+Accept-Ranges: none
+Connection: keep-alive
+
+The time taken field actually shows 32598 ms as the execution time.
+This clearly tells me that the OS is somehow executing the sleep command.
+However the OS is patched with all the latest updates.
+So how is the sleep command getting executed?
+And how can I use htaccess, to avoid this Bash Shellshock injection?
+
+In this case vega for example tried an URL
+GET /wp-content/plugins/accesspress-social-icons/js/frontend.js?ver=1.7.2
+
+The detailed request was
+
+GET /wp-content/plugins/accesspress-social-icons/js/frontend.js?ver=1.7.2 HTTP/1.1
+Accept-Encoding: gzip,deflate
+Host: newtestsite.domain.com
+Connection: Keep-Alive
+User-Agent: UserAgent
+
+The detailed response received back was
+
+HTTP/1.1 200 OK
+Date: Fri, 25 Jan 2019 22:45:24 GMT
+Server: Apache
+X-Frame-Options: SAMEORIGIN
+Last-Modified: Wed, 16 Jan 2019 12:08:50 GMT
+Accept-Ranges: none
+Cache-Control: max-age=2592000, public
+Expires: Sat, 25 Jan 2020 22:45:24 GMT
+X-XSS-Protection: 1; mode=block
+Referrer-Policy: no-referrer
+X-Frame-Options: sameorigin
+X-Content-Type-Options: nosniff
+Expect-CT: enforce, max-age=21600
+Access-Control-Allow-Origin: *
+Keep-Alive: timeout=5, max=99
+Content-Type: application/javascript
+Connection: keep-alive
+
+(function ($) {
+$(function () {
+$('.aps-each-icon').hover(function () {
+var animation_class = $(this).find('.anim
+:
+:
+trimming that out...
+
+Remediation shows:
+Set the "Access-Control-Allow-Origin" response header to allow access from trusted domains only. Do not allow access from arbitrary domains.
+
+Will that help you for enhancing your .htaccess.
+I plan to try that solution
+
+In this case, Vega tries this URL
+
+GET /wp-content/themes/Divi/core/2147483648
+
+Full request was
+
+GET /wp-content/themes/Divi/core/2147483648 HTTP/1.1
+Accept-Encoding: gzip,deflate
+Host: newtestsite.domain.com
+Connection: Keep-Alive
+User-Agent: UserAgent
+
+Full response received was
+
+HTTP/1.1 404 Not Found
+Date: Fri, 25 Jan 2019 23:16:57 GMT
+Server: Apache
+Expires: Wed, 11 Jan 1984 05:00:00 GMT
+Cache-Control: no-cache, must-revalidate, max-age=0
+Link: https://newtestsite.domain.com/wp-json/; rel="https://api.w.org/"
+X-Frame-Options: SAMEORIGIN
+Upgrade: h2,h2c
+X-XSS-Protection: 1; mode=block
+Referrer-Policy: no-referrer
+X-Frame-Options: sameorigin
+X-Content-Type-Options: nosniff
+Expect-CT: enforce, max-age=21600
+Keep-Alive: timeout=5, max=100
+Content-Type: text/html; charset=UTF-8
+Content-Length: 37478
+Accept-Ranges: none
+Connection: keep-alive
+
+Remediation shows:
+The developer should investigate the error and determine if a vulnerability is present.
+Since a 404 was received, did the request get honored?
+No right? Since I received a 404 back.
+Then should I be worried?
+If yes, can htaccess help?
+What line can I add?
+
+Full test request sent by Vega was
+
+GET /wp-content/plugins/accesspress-social-icons/css/animate.css?ver=/./ HTTP/1.1
+Accept-Encoding: gzip,deflate
+Host: newtestsite.domain.com
+Connection: Keep-Alive
+User-Agent: UserAgent
+
+Response received was
+
+HTTP/1.1 403 Forbidden
+Date: Sat, 26 Jan 2019 00:14:06 GMT
+Server: Apache
+X-Frame-Options: SAMEORIGIN
+Keep-Alive: timeout=5, max=75
+Content-Type: text/html; charset=iso-8859-1
+Content-Length: 268
+Accept-Ranges: none
+Connection: keep-alive
+
+<title>403 Forbidden</title>
+Forbidden
+You don't have permission to access /wp-content/plugins/accesspress-social-icons/css/animate.css on this server.
+It says
+Vega has detected a different response page fingerprint in relation to a local file include injection request.
+This means that the response page content returned by the web application has a different signature from that
+returned by an ordinary request, which may indicate the existence of a local file include vulnerability.
+This may indicate a local file include vulnerability, though this is not confirmed.
+
+Remediation shows
+To prevent this type of vulnerability, the developer should canonicalize the path of any filesystem resource
+that has a path composed of externally-supplied input and then perform an authorization check prior to access.
+The realpath() library call will return the canonical path of the resource.
+It is implemented in PHP, Perl, and Python.
+etc...
+
+Should I be worried about this?
+I received a 403 right?
+Isnt that good?
+
+In this test vega tried this request
+
+GET /wp-content/plugins/revslider/public/assets/js/jquery.themepunch.tools.min.js?ver=e"%20or%201%20eq%201%20or%20"a"%20=%20"a
+
+Full request was
+
+GET /wp-content/plugins/revslider/public/assets/js/jquery.themepunch.tools.min.js?ver=e"%20or%201%20eq%201%20or%20"a"%20=%20"a HTTP/1.1
+Accept-Encoding: gzip,deflate
+Host: newtestsite.domain.com
+Connection: Keep-Alive
+User-Agent: UserAgent
+
+Full response received was
+
+HTTP/1.1 200 OK
+Date: Fri, 25 Jan 2019 22:56:42 GMT
+Server: Apache
+X-Frame-Options: SAMEORIGIN
+Last-Modified: Sun, 16 Dec 2018 08:59:38 GMT
+Accept-Ranges: none
+Cache-Control: max-age=2592000, public
+Expires: Sat, 25 Jan 2020 22:56:42 GMT
+X-XSS-Protection: 1; mode=block
+Referrer-Policy: no-referrer
+X-Frame-Options: sameorigin
+X-Content-Type-Options: nosniff
+Expect-CT: enforce, max-age=21600
+Access-Control-Allow-Origin: *
+Keep-Alive: timeout=5, max=83
+Content-Type: application/javascript
+Connection: keep-alive
+
+/********************************************
+- THEMEPUNCH TOOLS Ver. 1.0 -
+Last Update of Tools 08.03.2018
+********************************************/
+/
+
+@fileOverview TouchSwipe - jQuery Plugin
+@Version 1.6.9
+:
+:
+trimming output
+
+Vega says:
+
+Vega has detected a different response page fingerprint in relation to an XPath injection request.
+This means that the response page content returned by the web application has a different signature
+from that returned by an ordinary request, which may indicate the existence of
+an XPath injection vulnerability
+This may indicate an XPath injection vulnerability, though this is not confirmed.
+To prevent this type of vulnerability, the developer should consider adopting the use of
+pre-compiled XPath statements or query parameterization options.
+
+What is xpath?
+What did Vega really try and what did the server really do?
+How can htaccess help avoid this?
+
+@eugenijusbgn
+eugenijusbgn commented on 6 Mar 2019
+According to https://codex.wordpress.org/Hardening_WordPress this rule does not work on multisite: RewriteRule ^wp-includes/[^/]+.php$ - [F,L]
+Maybe you can recommend how to modify this rule or exclude from multisite htaccess file?
+
+@LegendenSwe
+LegendenSwe commented on 20 Mar 2019 • 
+It is true something is injected, but use another way of detecting so will get back on whether or not is is OS playin games.
+
+According to https://codex.wordpress.org/Hardening_WordPress this rule does not work on multisite: RewriteRule ^wp-includes/[^/]+.php$ - [F,L]
+Maybe you can recommend how to modify this rule or exclude from multisite htaccess file?
+
+You should not use that rule one if you, alike me have a multisite, and the last rule should go first. Do you force ssl? And also many people who talk about optimizing by .htaccess completely miss two things which, combined, could be the most important speed optimizing enhancements one could do. Preload DNS lookups is something nobody should not do. And depending on what kind of traffic you run, consider using a CDN. Besides that, optimizing all images. It's evident optimizing images are very important regardless of his filter-module above. Removing commentators avatars is also something one should consider, also depending on how fast you want your site to be. Obviously i assume you have a quality host aswell. Combining css and java and perhaps minifying them is more important.
+
+Keeping the http requests on a low too. This .htaccess optimization is very thorough but there are many things, and important points not taken into consideration here. IF you really want to strive to stay below 1-2 seconds you should use a speed testing site and look at which http requests and dns lookups your site makes initially in order to preload/prefetch the lookups especially if those lookups come from plugins loading on start. And optimize those requests. Without doing that the rest will take you half way. Even if you are skilled like few others. Use pingdom do analyse these things. https://tools.pingdom.com
+
+PS you could also disable trackbacks if you don't need it. Lower the amount of revisions you save and use scheduled cleanup of database tables etc.
+
+99
+
+You can give me your email if you want me to send the file i made for you. legenden-vip@hotmail.com
+
+@TCMz
+TCMz commented on 5 Apr 2019 • 
+Hello
+Someone knows why my 7g code does not work on wordpress?
+All other rules work only 7G do not work at all
+
+# 7G:[QUERY STRING]
+<IfModule mod_rewrite.c>
+	
+	# RewriteCond %{REQUEST_URI} !(7g_log.php) [NC]
+	
+	RewriteCond %{QUERY_STRING} ([a-z0-9]{2000,}) [NC,OR]
+	RewriteCond %{QUERY_STRING} (/|%2f)(:|%3a)(/|%2f) [NC,OR]
+	RewriteCond %{QUERY_STRING} (/|%2f)(\*|%2a)(\*|%2a)(/|%2f) [NC,OR]
+	RewriteCond %{QUERY_STRING} (~|`|<|>|\^|\|\\|0x00|%00|%0d%0a) [NC,OR]
+	RewriteCond %{QUERY_STRING} (cmd|command)(=|%3d)(chdir|mkdir)(.*)(x20) [NC,OR]
+	RewriteCond %{QUERY_STRING} (fck|ckfinder|fullclick|ckfinder|fckeditor) [NC,OR]
+	RewriteCond %{QUERY_STRING} (thumbs?(_editor|open)?|tim(thumbs?)?)((\.|%2e)php) [NC,OR]
+	RewriteCond %{QUERY_STRING} (absolute_|base|root_)(dir|path)(=|%3d)(ftp|https?) [NC,OR]
+	RewriteCond %{QUERY_STRING} (localhost|loopback|127(\.|%2e)0(\.|%2e)0(\.|%2e)1) [NC,OR]
+	RewriteCond %{QUERY_STRING} (\.|20)(get|the)(_|%5f)(permalink|posts_page_url)(\(|%28) [NC,OR]
+	RewriteCond %{QUERY_STRING} (s)?(ftp|http|inurl|php)(s)?(:(/|%2f|%u2215)(/|%2f|%u2215)) [NC,OR]
+	RewriteCond %{QUERY_STRING} (/|%2f)((wp-)?(config)(uration)?)((\.|%2e)inc)?((\.|%2e)php) [NC,OR]
+	RewriteCond %{QUERY_STRING} (globals|mosconfig([a-z_]{1,22})|request)(=|\[|%[a-z0-9]{0,2}) [NC,OR]
+	RewriteCond %{QUERY_STRING} ((boot|win)((\.|%2e)ini)|etc(/|%2f)passwd|self(/|%2f)environ) [NC,OR]
+	RewriteCond %{QUERY_STRING} (((/|%2f){3,3})|((\.|%2e){3,3})|((\.|%2e){2,2})(/|%2f|%u2215)) [NC,OR]
+	RewriteCond %{QUERY_STRING} (benchmark|char|exec|fopen|function|html)(.*)(\(|%28)(.*)(\)|%29) [NC,OR]
+	RewriteCond %{QUERY_STRING} (php)([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}) [NC,OR]
+	RewriteCond %{QUERY_STRING} (e|%65|%45)(v|%76|%56)(a|%61|%31)(l|%6c|%4c)(.*)(\(|%28)(.*)(\)|%29) [NC,OR]
+	RewriteCond %{QUERY_STRING} (/|%2f)(=|%3d|$&|_mm|cgi(\.|-)|inurl(:|%3a)(/|%2f)|(mod|path)(=|%3d)(\.|%2e)) [NC,OR]
+	RewriteCond %{QUERY_STRING} (<|%3c)(.*)(e|%65|%45)(m|%6d|%4d)(b|%62|%42)(e|%65|%45)(d|%64|%44)(.*)(>|%3e) [NC,OR]
+	RewriteCond %{QUERY_STRING} (<|%3c)(.*)(i|%69|%49)(f|%66|%46)(r|%72|%52)(a|%61|%41)(m|%6d|%4d)(e|%65|%45)(.*)(>|%3e) [NC,OR]
+	RewriteCond %{QUERY_STRING} (<|%3c)(.*)(o|%4f|%6f)(b|%62|%42)(j|%4a|%6a)(e|%65|%45)(c|%63|%43)(t|%74|%54)(.*)(>|%3e) [NC,OR]
+	RewriteCond %{QUERY_STRING} (<|%3c)(.*)(s|%73|%53)(c|%63|%43)(r|%72|%52)(i|%69|%49)(p|%70|%50)(t|%74|%54)(.*)(>|%3e) [NC,OR]
+	RewriteCond %{QUERY_STRING} (\+|%2b|%20)(d|%64|%44)(e|%65|%45)(l|%6c|%4c)(e|%65|%45)(t|%74|%54)(e|%65|%45)(\+|%2b|%20) [NC,OR]
+	RewriteCond %{QUERY_STRING} (\+|%2b|%20)(i|%69|%49)(n|%6e|%4e)(s|%73|%53)(e|%65|%45)(r|%72|%52)(t|%74|%54)(\+|%2b|%20) [NC,OR]
+	RewriteCond %{QUERY_STRING} (\+|%2b|%20)(s|%73|%53)(e|%65|%45)(l|%6c|%4c)(e|%65|%45)(c|%63|%43)(t|%74|%54)(\+|%2b|%20) [NC,OR]
+	RewriteCond %{QUERY_STRING} (\+|%2b|%20)(u|%75|%55)(p|%70|%50)(d|%64|%44)(a|%61|%41)(t|%74|%54)(e|%65|%45)(\+|%2b|%20) [NC,OR]
+	RewriteCond %{QUERY_STRING} (\\x00|(\"|%22|\'|%27)?0(\"|%22|\'|%27)?(=|%3d)(\"|%22|\'|%27)?0|cast(\(|%28)0x|or%201(=|%3d)1) [NC,OR]
+	RewriteCond %{QUERY_STRING} (g|%67|%47)(l|%6c|%4c)(o|%6f|%4f)(b|%62|%42)(a|%61|%41)(l|%6c|%4c)(s|%73|%53)(=|[|%[0-9A-Z]{0,2}) [NC,OR]
+	RewriteCond %{QUERY_STRING} (_|%5f)(r|%72|%52)(e|%65|%45)(q|%71|%51)(u|%75|%55)(e|%65|%45)(s|%73|%53)(t|%74|%54)(=|[|%[0-9A-Z]{0,2}) [NC,OR]
+	RewriteCond %{QUERY_STRING} (j|%6a|%4a)(a|%61|%41)(v|%76|%56)(a|%61|%31)(s|%73|%53)(c|%63|%43)(r|%72|%52)(i|%69|%49)(p|%70|%50)(t|%74|%54)(:|%3a)(.*)(;|%3b) [NC,OR]
+	RewriteCond %{QUERY_STRING} (b|%62|%42)(a|%61|%41)(s|%73|%53)(e|%65|%45)(6|%36)(4|%34)(_|%5f)(e|%65|%45|d|%64|%44)(e|%65|%45|n|%6e|%4e)(c|%63|%43)(o|%6f|%4f)(d|%64|%44)(e|%65|%45)(.*)(\()(.*)(\)) [NC,OR]
+	RewriteCond %{QUERY_STRING} (allow_url_(fopen|include)|auto_prepend_file|blexbot|browsersploit|(c99|php)shell|curltest|disable_functions?|document_root|elastix|encodeuricom|exec|exploit|fclose|fgets|fputs|fread|fsbuff|fsockopen|gethostbyname|grablogin|hmei7|input_file|load_file|null|open_basedir|outfile|passthru|popen|proc_open|quickbrute|remoteview|revslider|root_path|safe_mode|shell_exec|site((.){0,2})copier|sux0r|trojan|wget|xertive) [NC,OR]
+	RewriteCond %{QUERY_STRING} (;|<|>|\'|\"|\)|%0a|%0d|%22|%27|%3c|%3e|%00)(.*)(/\*|alter|base64|benchmark|cast|char|concat|convert|create|encode|declare|delete|drop|insert|md5|order|request|script|select|set|union|update) [NC,OR]
+	RewriteCond %{QUERY_STRING} ((\+|%2b)(concat|delete|get|select|union)(\+|%2b)) [NC,OR]
+	RewriteCond %{QUERY_STRING} (union)(.*)(select)(.*)(\(|%28) [NC,OR]
+	RewriteCond %{QUERY_STRING} (concat)(.*)(\(|%28) [NC]
+	
+	RewriteRule . - [F,L]
+	
+	# RewriteRule .* /7g_log.php?log [L,NE,E=7G_QUERY_STRING:%1___%2___%3]
+	
+</IfModule>
+
+
+
+
+Header set X-Permitted-Cross-Domain-Policies "none"
+Header set Referrer-Policy "no-referrer-when-downgrade"
+Header set Strict-Transport-Security "max-age=31536000" env=HTTPS
+Header set X-XSS-Protection "1; mode=block"
+Header set X-Content-Type-Options nosniff
+Header always append X-Frame-Options SAMEORIGIN
+<Files xmlrpc.php>
+Order Allow,Deny
+Deny from all
+</Files>
+<Files admin-ajax.php>
+    Order allow,deny
+    Allow from all
+    Satisfy any 
+</Files>
+# BEGIN Expire headers
+
+<IfModule mod_mime.c>
+    AddType font/opentype .otf
+    AddType application/font-woff .woff
+    AddType application/font-woff2 .woff2
+    AddType application/x-font-ttf .ttf
+    AddType application/vnd.ms-fontobject .eot
+    AddType image/svg+xml .svg
+</IfModule>
+
+<IfModule mod_expires.c>
+    ExpiresActive on
+    ExpiresDefault                                      "access plus 1 month"
+
+  # CSS
+    ExpiresByType text/css                              "access plus 1 month"
+
+  # Data interchange
+    ExpiresByType application/atom+xml                  "access plus 1 hour"
+    ExpiresByType application/rdf+xml                   "access plus 1 hour"
+    ExpiresByType application/rss+xml                   "access plus 1 hour"
+
+    ExpiresByType application/json                      "access plus 0 seconds"
+    ExpiresByType application/ld+json                   "access plus 0 seconds"
+    ExpiresByType application/schema+json               "access plus 0 seconds"
+    ExpiresByType application/vnd.geo+json              "access plus 0 seconds"
+    ExpiresByType application/xml                       "access plus 0 seconds"
+    ExpiresByType text/xml                              "access plus 0 seconds"
+
+  # Favicon (cannot be renamed!) and cursor images
+    ExpiresByType image/vnd.microsoft.icon              "access plus 1 week"
+    ExpiresByType image/x-icon                          "access plus 1 week"
+
+  # HTML - Behält die Website eine Stunde im Cache, neues wird erst nach Ablauf einer Stunde
+  # angezeigt. Wenn nicht gewuenscht, bei 3600 eine Null eintragen
+    ExpiresByType text/html                             "access plus 3600 seconds"
+
+  # JavaScript
+    ExpiresByType application/javascript                "access plus 1 month"
+    ExpiresByType application/x-javascript              "access plus 1 month"
+    ExpiresByType text/javascript                       "access plus 1 month"
+
+  # Manifest files
+    ExpiresByType application/manifest+json             "access plus 1 week"
+    ExpiresByType application/x-web-app-manifest+json   "access plus 0 seconds"
+    ExpiresByType text/cache-manifest                   "access plus 0 seconds"
+
+  # Media files
+    ExpiresByType audio/ogg                             "access plus 1 month"
+    ExpiresByType image/bmp                             "access plus 1 month"
+    ExpiresByType image/gif                             "access plus 1 month"
+    ExpiresByType image/jpeg                            "access plus 1 month"
+    ExpiresByType image/png                             "access plus 1 month"
+    ExpiresByType image/svg+xml                         "access plus 1 month"
+    ExpiresByType image/webp                            "access plus 1 month"
+    ExpiresByType video/mp4                             "access plus 1 month"
+    ExpiresByType video/ogg                             "access plus 1 month"
+    ExpiresByType video/webm                            "access plus 1 month"
+
+  # Web fonts
+
+    # Embedded OpenType (EOT)
+    ExpiresByType application/vnd.ms-fontobject         "access plus 1 month"
+    ExpiresByType font/eot                              "access plus 1 month"
+
+    # OpenType
+    ExpiresByType font/opentype                         "access plus 1 month"
+
+    # TrueType
+    ExpiresByType application/x-font-ttf                "access plus 1 month"
+
+    # Web Open Font Format (WOFF) 1.0
+    ExpiresByType application/font-woff                 "access plus 1 month"
+    ExpiresByType application/x-font-woff               "access plus 1 month"
+    ExpiresByType font/woff                             "access plus 1 month"
+
+    # Web Open Font Format (WOFF) 2.0
+    ExpiresByType application/font-woff2                "access plus 1 month"
+
+  # Other
+    ExpiresByType text/x-cross-domain-policy            "access plus 1 week"
+</IfModule>
+# BEGIN WPSuperCache
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+#If you serve pages from behind a proxy you may want to change 'RewriteCond %{HTTPS} on' to something more sensible
+AddDefaultCharset UTF-8
+RewriteCond %{REQUEST_URI} !^.*[^/]$
+RewriteCond %{REQUEST_URI} !^.*//.*$
+RewriteCond %{REQUEST_METHOD} !POST
+RewriteCond %{QUERY_STRING} ^$
+RewriteCond %{HTTP:Cookie} !^.*(comment_author_|wordpress_logged_in|wp-postpass_).*$
+RewriteCond %{HTTP:X-Wap-Profile} !^[a-z0-9\"]+ [NC]
+RewriteCond %{HTTP:Profile} !^[a-z0-9\"]+ [NC]
+RewriteCond %{HTTP_USER_AGENT} !^.*(2.0\ MMP|240x320|400X240|AvantGo|BlackBerry|Blazer|Cellphone|Danger|DoCoMo|Elaine/3.0|EudoraWeb|Googlebot-Mobile|hiptop|IEMobile|KYOCERA/WX310K|LG/U990|MIDP-2.|MMEF20|MOT-V|NetFront|Newt|Nintendo\ Wii|Nitro|Nokia|Opera\ Mini|Palm|PlayStation\ Portable|portalmmm|Proxinet|ProxiNet|SHARP-TQ-GX10|SHG-i900|Small|SonyEricsson|Symbian\ OS|SymbianOS|TS21i-10|UP.Browser|UP.Link|webOS|Windows\ CE|WinWAP|YahooSeeker/M1A1-R2D2|iPhone|iPod|iPad|Android|BlackBerry9530|LG-TU915\ Obigo|LGE\ VX|webOS|Nokia5800).* [NC]
+RewriteCond %{HTTP_USER_AGENT} !^(w3c\ |w3c-|acs-|alav|alca|amoi|audi|avan|benq|bird|blac|blaz|brew|cell|cldc|cmd-|dang|doco|eric|hipt|htc_|inno|ipaq|ipod|jigs|kddi|keji|leno|lg-c|lg-d|lg-g|lge-|lg/u|maui|maxo|midp|mits|mmef|mobi|mot-|moto|mwbp|nec-|newt|noki|palm|pana|pant|phil|play|port|prox|qwap|sage|sams|sany|sch-|sec-|send|seri|sgh-|shar|sie-|siem|smal|smar|sony|sph-|symb|t-mo|teli|tim-|tosh|tsm-|upg1|upsi|vk-v|voda|wap-|wapa|wapi|wapp|wapr|webc|winw|winw|xda\ |xda-).* [NC]
+RewriteCond %{HTTP:Accept-Encoding} gzip
+RewriteCond %{HTTPS} on
+RewriteCond %{DOCUMENT_ROOT}/wp-content/cache/supercache/%{SERVER_NAME}/$1/index-https.html.gz -f
+RewriteRule ^(.*) "/wp-content/cache/supercache/%{SERVER_NAME}/$1/index-https.html.gz" [L]
+
+RewriteCond %{REQUEST_URI} !^.*[^/]$
+RewriteCond %{REQUEST_URI} !^.*//.*$
+RewriteCond %{REQUEST_METHOD} !POST
+RewriteCond %{QUERY_STRING} ^$
+RewriteCond %{HTTP:Cookie} !^.*(comment_author_|wordpress_logged_in|wp-postpass_).*$
+RewriteCond %{HTTP:X-Wap-Profile} !^[a-z0-9\"]+ [NC]
+RewriteCond %{HTTP:Profile} !^[a-z0-9\"]+ [NC]
+RewriteCond %{HTTP_USER_AGENT} !^.*(2.0\ MMP|240x320|400X240|AvantGo|BlackBerry|Blazer|Cellphone|Danger|DoCoMo|Elaine/3.0|EudoraWeb|Googlebot-Mobile|hiptop|IEMobile|KYOCERA/WX310K|LG/U990|MIDP-2.|MMEF20|MOT-V|NetFront|Newt|Nintendo\ Wii|Nitro|Nokia|Opera\ Mini|Palm|PlayStation\ Portable|portalmmm|Proxinet|ProxiNet|SHARP-TQ-GX10|SHG-i900|Small|SonyEricsson|Symbian\ OS|SymbianOS|TS21i-10|UP.Browser|UP.Link|webOS|Windows\ CE|WinWAP|YahooSeeker/M1A1-R2D2|iPhone|iPod|iPad|Android|BlackBerry9530|LG-TU915\ Obigo|LGE\ VX|webOS|Nokia5800).* [NC]
+RewriteCond %{HTTP_USER_AGENT} !^(w3c\ |w3c-|acs-|alav|alca|amoi|audi|avan|benq|bird|blac|blaz|brew|cell|cldc|cmd-|dang|doco|eric|hipt|htc_|inno|ipaq|ipod|jigs|kddi|keji|leno|lg-c|lg-d|lg-g|lge-|lg/u|maui|maxo|midp|mits|mmef|mobi|mot-|moto|mwbp|nec-|newt|noki|palm|pana|pant|phil|play|port|prox|qwap|sage|sams|sany|sch-|sec-|send|seri|sgh-|shar|sie-|siem|smal|smar|sony|sph-|symb|t-mo|teli|tim-|tosh|tsm-|upg1|upsi|vk-v|voda|wap-|wapa|wapi|wapp|wapr|webc|winw|winw|xda\ |xda-).* [NC]
+RewriteCond %{HTTP:Accept-Encoding} gzip
+RewriteCond %{HTTPS} !on
+RewriteCond %{DOCUMENT_ROOT}/wp-content/cache/supercache/%{SERVER_NAME}/$1/index.html.gz -f
+RewriteRule ^(.*) "/wp-content/cache/supercache/%{SERVER_NAME}/$1/index.html.gz" [L]
+
+RewriteCond %{REQUEST_URI} !^.*[^/]$
+RewriteCond %{REQUEST_URI} !^.*//.*$
+RewriteCond %{REQUEST_METHOD} !POST
+RewriteCond %{QUERY_STRING} ^$
+RewriteCond %{HTTP:Cookie} !^.*(comment_author_|wordpress_logged_in|wp-postpass_).*$
+RewriteCond %{HTTP:X-Wap-Profile} !^[a-z0-9\"]+ [NC]
+RewriteCond %{HTTP:Profile} !^[a-z0-9\"]+ [NC]
+RewriteCond %{HTTP_USER_AGENT} !^.*(2.0\ MMP|240x320|400X240|AvantGo|BlackBerry|Blazer|Cellphone|Danger|DoCoMo|Elaine/3.0|EudoraWeb|Googlebot-Mobile|hiptop|IEMobile|KYOCERA/WX310K|LG/U990|MIDP-2.|MMEF20|MOT-V|NetFront|Newt|Nintendo\ Wii|Nitro|Nokia|Opera\ Mini|Palm|PlayStation\ Portable|portalmmm|Proxinet|ProxiNet|SHARP-TQ-GX10|SHG-i900|Small|SonyEricsson|Symbian\ OS|SymbianOS|TS21i-10|UP.Browser|UP.Link|webOS|Windows\ CE|WinWAP|YahooSeeker/M1A1-R2D2|iPhone|iPod|iPad|Android|BlackBerry9530|LG-TU915\ Obigo|LGE\ VX|webOS|Nokia5800).* [NC]
+RewriteCond %{HTTP_USER_AGENT} !^(w3c\ |w3c-|acs-|alav|alca|amoi|audi|avan|benq|bird|blac|blaz|brew|cell|cldc|cmd-|dang|doco|eric|hipt|htc_|inno|ipaq|ipod|jigs|kddi|keji|leno|lg-c|lg-d|lg-g|lge-|lg/u|maui|maxo|midp|mits|mmef|mobi|mot-|moto|mwbp|nec-|newt|noki|palm|pana|pant|phil|play|port|prox|qwap|sage|sams|sany|sch-|sec-|send|seri|sgh-|shar|sie-|siem|smal|smar|sony|sph-|symb|t-mo|teli|tim-|tosh|tsm-|upg1|upsi|vk-v|voda|wap-|wapa|wapi|wapp|wapr|webc|winw|winw|xda\ |xda-).* [NC]
+RewriteCond %{HTTPS} on
+RewriteCond %{DOCUMENT_ROOT}/wp-content/cache/supercache/%{SERVER_NAME}/$1/index-https.html -f
+RewriteRule ^(.*) "/wp-content/cache/supercache/%{SERVER_NAME}/$1/index-https.html" [L]
+
+RewriteCond %{REQUEST_URI} !^.*[^/]$
+RewriteCond %{REQUEST_URI} !^.*//.*$
+RewriteCond %{REQUEST_METHOD} !POST
+RewriteCond %{QUERY_STRING} ^$
+RewriteCond %{HTTP:Cookie} !^.*(comment_author_|wordpress_logged_in|wp-postpass_).*$
+RewriteCond %{HTTP:X-Wap-Profile} !^[a-z0-9\"]+ [NC]
+RewriteCond %{HTTP:Profile} !^[a-z0-9\"]+ [NC]
+RewriteCond %{HTTP_USER_AGENT} !^.*(2.0\ MMP|240x320|400X240|AvantGo|BlackBerry|Blazer|Cellphone|Danger|DoCoMo|Elaine/3.0|EudoraWeb|Googlebot-Mobile|hiptop|IEMobile|KYOCERA/WX310K|LG/U990|MIDP-2.|MMEF20|MOT-V|NetFront|Newt|Nintendo\ Wii|Nitro|Nokia|Opera\ Mini|Palm|PlayStation\ Portable|portalmmm|Proxinet|ProxiNet|SHARP-TQ-GX10|SHG-i900|Small|SonyEricsson|Symbian\ OS|SymbianOS|TS21i-10|UP.Browser|UP.Link|webOS|Windows\ CE|WinWAP|YahooSeeker/M1A1-R2D2|iPhone|iPod|iPad|Android|BlackBerry9530|LG-TU915\ Obigo|LGE\ VX|webOS|Nokia5800).* [NC]
+RewriteCond %{HTTP_USER_AGENT} !^(w3c\ |w3c-|acs-|alav|alca|amoi|audi|avan|benq|bird|blac|blaz|brew|cell|cldc|cmd-|dang|doco|eric|hipt|htc_|inno|ipaq|ipod|jigs|kddi|keji|leno|lg-c|lg-d|lg-g|lge-|lg/u|maui|maxo|midp|mits|mmef|mobi|mot-|moto|mwbp|nec-|newt|noki|palm|pana|pant|phil|play|port|prox|qwap|sage|sams|sany|sch-|sec-|send|seri|sgh-|shar|sie-|siem|smal|smar|sony|sph-|symb|t-mo|teli|tim-|tosh|tsm-|upg1|upsi|vk-v|voda|wap-|wapa|wapi|wapp|wapr|webc|winw|winw|xda\ |xda-).* [NC]
+RewriteCond %{HTTPS} !on
+RewriteCond %{DOCUMENT_ROOT}/wp-content/cache/supercache/%{SERVER_NAME}/$1/index.html -f
+RewriteRule ^(.*) "/wp-content/cache/supercache/%{SERVER_NAME}/$1/index.html" [L]
+</IfModule>
+
+# END WPSuperCache
+
+# BEGIN rlrssslReallySimpleSSL rsssl_version[2.5.25]
+<IfModule mod_rewrite.c>
+RewriteEngine on
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+</IfModule>
+# END rlrssslReallySimpleSSL
+
+<IfModule mod_expires.c>
+RewriteEngine On
+RewriteBase /
+RewriteCond %{QUERY_STRING} ^(.*)&?fbclid=[^&]+&?(.*)$ [NC]
+RewriteRule ^(.*)$ /$1?%1%2 [R=301,L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+
+# BEGIN WordPress
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+
+# END WordPress
+# BEGIN GZIP Compression
+ 
+<IfModule mod_deflate.c>
+AddOutputFilterByType DEFLATE text/plain
+AddOutputFilterByType DEFLATE text/html
+AddOutputFilterByType DEFLATE text/xml
+AddOutputFilterByType DEFLATE text/css
+AddOutputFilterByType DEFLATE text/vtt 
+AddOutputFilterByType DEFLATE text/x-component
+AddOutputFilterByType DEFLATE application/xml
+AddOutputFilterByType DEFLATE application/xhtml+xml
+AddOutputFilterByType DEFLATE application/rss+xml
+AddOutputFilterByType DEFLATE application/js
+AddOutputFilterByType DEFLATE application/javascript
+AddOutputFilterByType DEFLATE application/x-javascript
+AddOutputFilterByType DEFLATE application/x-httpd-php
+AddOutputFilterByType DEFLATE application/x-httpd-fastphp
+AddOutputFilterByType DEFLATE application/atom+xml 
+AddOutputFilterByType DEFLATE application/json
+AddOutputFilterByType DEFLATE application/ld+json 
+AddOutputFilterByType DEFLATE application/vnd.ms-fontobject 
+AddOutputFilterByType DEFLATE application/x-font-ttf
+AddOutputFilterByType DEFLATE application/font-woff2
+AddOutputFilterByType DEFLATE application/x-font-woff
+AddOutputFilterByType DEFLATE application/x-web-app-manifest+json font/woff
+AddOutputFilterByType DEFLATE font/woff 
+AddOutputFilterByType DEFLATE font/opentype
+AddOutputFilterByType DEFLATE image/svg+xml
+AddOutputFilterByType DEFLATE image/x-icon 
+</IfModule>
+ 
+# END GZIP Compression
